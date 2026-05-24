@@ -4,7 +4,7 @@ import { DEFAULT_HOTKEY, IpcChannel } from '@shared/channels';
 import { createTray, destroyTray } from './tray';
 import { registerHotkey, unregisterAllHotkeys } from './hotkey';
 import { runCapturePipeline } from './orchestrator';
-import { disposeOcr } from './ocr/tesseract';
+import { disposeOcr } from './ocr';
 
 // Prevent two instances of the tray app from running at once. The second
 // launch silently exits; the first instance can react via 'second-instance'.

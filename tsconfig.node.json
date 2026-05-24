@@ -8,6 +8,8 @@
   ],
   "compilerOptions": {
     "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "types": ["electron-vite/node"],
     "baseUrl": ".",
     "paths": {

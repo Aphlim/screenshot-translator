@@ -2,7 +2,7 @@ import { captureDisplayUnderCursor } from './capture/screenshot';
 import { cropRegion } from './capture/crop';
 import { openSelectorWindow } from './windows/selector';
 import { openPopupWindow, type PopupSession } from './windows/popup';
-import { recognizeImage } from './ocr/tesseract';
+import { recognizeImage } from './ocr';
 import { loadConfig, getConfigPath } from './config/store';
 import { buildProvider } from './translate';
 
