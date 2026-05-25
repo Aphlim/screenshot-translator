@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FuckEnglish · 极简黑白灰 UI 设计规范稿</title>
+  <style>
+    /* ==========================================
+       1. 设计系统变量 (Design Tokens)
+       ========================================== */
+    :root {
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      
+      /* 核心配色：极简暖白、深炭灰与中灰 */
+      --color-bg-window: #faf9f5;      /* 微微发暖的石胚白 */
+      --color-bg-card: #ffffff;        /* 纯白 */
+      --color-border-main: #1c1917;    /* 极深炭黑（硬朗边框） */
+      --color-border-muted: #e7e5e4;   /* 浅暖灰边框 */
+      --color-border-dark: #d6d3d1;    /* 中暖灰边框 */
+      
+      /* 核心点缀色：亮橘色 (Vibrant Swiss Orange) */
+      --color-accent: #ff5a1f;          /* 亮橘色 */
+      --color-accent-hover: #e04a15;    /* 悬浮橘 */
+      --color-accent-light: #fff2eb;    /* 极浅暖橘底色 */
+      
+      /* 文本颜色 */
+      --color-text-main: #1c1917;      /* 主文本 */
+      --color-text-muted: #57534e;     /* 次文本 */
+      --color-text-weak: #78716c;      /* 弱文本 */
+      --color-text-placeholder: #a8a29e; /* 占位符 */
+      
+      /* 严谨的状态提示色（非高饱和度） */
+      --color-success: #166534;        /* 暗绿 */
+      --color-success-bg: #f0fdf4;
+      --color-error: #991b1b;          /* 深红 */
+      --color-error-bg: #fef2f2;
+      
+      /* 极硬圆角 */
+      --radius-card: 3px;
+      --radius-comp: 2px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: #121110; /* 深色碳黑底，以衬托微暖白的主窗口 */
+      color: var(--color-text-main);
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    /* ==========================================
+       2. 展示大盘布局 (Catalog Structure)
+       ========================================== */
+    .catalog-header {
+      text-align: center;
+      color: #faf9f5;
+      margin-bottom: 10px;
+      max-width: 800px;
+    }
+
+    .catalog-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .catalog-header p {
+      font-size: 13px;
+      color: #a8a29e;
+      line-height: 1.5;
+    }
+
+    .catalog-header p strong {
+      color: var(--color-accent);
+    }
+
+    .windows-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 30px;
+      width: 100%;
+      max-width: 1560px;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ==========================================
+       3. 核心窗口容器 (Window Frame)
+       ========================================== */
+    .mock-window-wrapper {
+      position: relative;
+      width: 480px;
+      height: 580px;
+      margin: 0 auto;
+    }
+
+    /* 模拟外层透明呼吸间距 */
+    .outer-window-shell {
+      width: 100%;
+      height: 100%;
+      padding: 14px;
+    }
+
+    /* 主卡片体 (硬朗暖白设计) */
+    .window-card {
+      width: 100%;
+      height: 100%;
+      border-radius: var(--radius-card);
+      background: var(--color-bg-window);
+      border: 1px solid var(--color-border-main);
+      box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.8); /* 纯硬派 Brutalist 投影 */
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ==========================================
+       4. 顶栏 (Titlebar)
+       ========================================== */
+    .window-header {
+      height: 38px;
+      min-height: 38px;
+      padding: 0 14px;
+      background: #f1efe9; /* 稍微深一点的暖灰色 */
+      border-bottom: 1px solid var(--color-border-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .brand-area {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 亮橘色品牌标志点 */
+    .brand-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--color-accent);
+    }
+
+    .brand-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--color-text-weak);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* 顶部操作按钮 - 硬朗线框 */
+    .action-sub-btn {
+      padding: 2px 6px;
+      border-radius: var(--radius-comp);
+      border: 1px solid var(--color-border-main);
+      background: var(--color-bg-card);
+      color: var(--color-text-main);
+      font-size: 10px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .action-sub-btn:hover {
+      background: var(--color-border-main);
+      color: var(--color-bg-card);
+    }
+
+    /* 顶部关闭按钮 */
+    .close-btn {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-comp);
+      border: 1px solid var(--color-border-main);
+      background: var(--color-bg-card);
+      color: var(--color-text-main);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      background: #be123c;
+      border-color: #be123c;
+      color: #ffffff;
+    }
+
+    /* ==========================================
+       5. 内容区 (Body Container)
+       ========================================== */
+    .window-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ==========================================
+       6. 状态提示 (Status Banner)
+       ========================================== */
+    .status-banner {
+      border-radius: var(--radius-comp);
+      padding: 8px 10px;
+      font-size: 11.5px;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      border: 1px solid var(--color-border-main);
+    }
+
+    /* 极简灰度提示 */
+    .status-banner.banner-welcome {
+      background: var(--color-bg-card);
+      border-left: 3px solid var(--color-accent); /* 使用亮橘色作为迎新提示侧边 */
+    }
+
+    .banner-welcome .welcome-text {
+      color: var(--color-text-muted);
+    }
+
+    .banner-welcome .welcome-text strong {
+      color: var(--color-text-main);
+      font-weight: 700;
+    }
+
+    /* 连接成功 Banner */
+    .status-banner.banner-success {
+      background: var(--color-success-bg);
+      border-color: var(--color-success);
+      color: var(--color-success);
+    }
+
+    /* 连接失败 Banner */
+    .status-banner.banner-error {
+      background: var(--color-error-bg);
+      border-color: var(--color-error);
+      color: var(--color-error);
+    }
+
+    /* ==========================================
+       7. 表单与输入框 (Brutalist Form elements)
+       ========================================== */
+    .settings-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-text-weak);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border-muted);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--color-text-main);
+    }
+
+    .form-helper {
+      font-size: 10.5px;
+      color: var(--color-text-weak);
+    }
+
+    .input-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    /* 硬朗无边框阴影的输入框 */
+    .form-input {
+      width: 100%;
+      height: 32px;
+      padding: 0 8px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--color-text-main);
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border-dark);
+      border-radius: var(--radius-comp);
+      transition: border-color 0.15s ease;
+    }
+
+    .form-input::placeholder {
+      color: var(--color-text-placeholder);
+    }
+
+    /* 输入框聚焦时使用亮橘色精细描边 */
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+    }
+
+    .input-password {
+      padding-right: 32px;
+    }
+
+    .password-toggle-btn {
+      position: absolute;
+      right: 8px;
+      background: none;
+      border: none;
+      color: var(--color-text-weak);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .password-toggle-btn:hover {
+      color: var(--color-text-main);
+    }
+
+    .password-toggle-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ==========================================
+       8. 预设标签 Chips (Minimalist Rectangles)
+       ========================================== */
+    .chips-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .chip {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border-dark);
+      padding: 2px 6px;
+      border-radius: var(--radius-comp);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chip:hover {
+      border-color: var(--color-border-main);
+      color: var(--color-text-main);
+    }
+
+    /* 选中状态采用亮橘色打底，与黑字形成高反差 */
+    .chip.chip-selected {
+      background: var(--color-accent) !important;
+      color: #ffffff !important;
+      border-color: var(--color-border-main) !important;
+    }
+
+    /* ==========================================
+       9. 底部操作按钮群 (Flat Minimal Buttons)
+       ========================================== */
+    .window-footer {
+      border-top: 1px solid var(--color-border-main);
+      padding: 10px 14px;
+      background: #f1efe9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--radius-comp);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      user-select: none;
+    }
+
+    /* 主按钮 - 亮橘色底+硬朗黑色投影阴影 */
+    .btn-primary {
+      background: var(--color-accent);
+      border: 1px solid var(--color-border-main);
+      color: #ffffff;
+      box-shadow: 2px 2px 0px var(--color-border-main);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent-hover);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px var(--color-border-main);
+    }
+
+    .btn-primary:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px var(--color-border-main);
+    }
+
+    /* 次级按钮 - 白底黑字细线框 */
+    .btn-secondary {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border-main);
+      color: var(--color-text-main);
+    }
+
+    .btn-secondary:hover {
+      background: #f5f5f4;
+    }
+
+    .btn-link {
+      font-size: 10.5px;
+      color: var(--color-text-weak);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .btn-link:hover {
+      color: var(--color-text-main);
+    }
+
+    .btn-link svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .pulse-loading-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .pulse-loading-dot span {
+      width: 3px;
+      height: 3px;
+      background-color: currentColor;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse-dot 1.2s infinite ease-in-out both;
+    }
+
+    .pulse-loading-dot span:nth-child(1) { animation-delay: -0.3s; }
+    .pulse-loading-dot span:nth-child(2) { animation-delay: -0.15s; }
+
+    @keyframes pulse-dot {
+      0%, 80%, 100% { transform: scale(0.3); opacity: 0.2; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .input-error {
+      border-color: var(--color-error) !important;
+      background: var(--color-error-bg) !important;
+    }
+
+    /* ==========================================
+       10. 极致精细对照翻译弹窗专用样式 (Refined Translation Popup)
+       ========================================== */
+    .translation-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 0;
+      background: var(--color-bg-card); /* 译文主体用最干净的纸张白 */
+    }
+
+    /* 1px 极细实线分隔 */
+    .translation-pane {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      border-bottom: 1px solid var(--color-border-muted);
+    }
+
+    .translation-column {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* 左侧原文栏 */
+    .column-left {
+      border-right: 1px solid var(--color-border-muted);
+      position: relative;
+    }
+
+    /* 右侧译文栏：微微起保护作用的暖白 */
+    .column-right {
+      background: var(--color-bg-window);
+      position: relative;
+    }
+
+    /* 每一个卡片的定位参考十字，增加微观仪器的精密感 */
+    .crosshair-corner {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--color-border-dark);
+      user-select: none;
+      pointer-events: none;
+    }
+    .crosshair-lt { top: 6px; left: 6px; }
+    .crosshair-rb { bottom: 6px; right: 6px; }
+
+    .column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .column-header-tag {
+      font-size: 8.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-weak);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 行号标记，增加精密感 */
+    .line-number {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      color: var(--color-text-placeholder);
+      letter-spacing: normal;
+    }
+
+    .text-content-original {
+      font-size: 12px;
+      line-height: 1.6;
+      font-family: var(--font-mono);
+      color: var(--color-text-muted);
+      white-space: pre-wrap;
+    }
+
+    .text-content-translated {
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--color-text-main);
+      white-space: pre-wrap;
+    }
+
+    /* 单词高亮：暖橘底色+硬橘下划线，优雅且突出 */
+    .highlight-word {
+      background: var(--color-accent-light);
+      border-bottom: 1.5px solid var(--color-accent);
+      padding: 0 2px;
+      color: var(--color-text-main);
+      font-weight: 500;
+    }
+
+    /* 精简动作区 */
+    .compact-actions {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .compact-action-btn {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      background: transparent;
+      border: 1px solid var(--color-border-dark);
+      padding: 2px 5px;
+      border-radius: var(--radius-comp);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .compact-action-btn:hover {
+      border-color: var(--color-border-main);
+      color: var(--color-text-main);
+      background: var(--color-bg-window);
+    }
+    
+    .compact-action-btn.btn-orange-text:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+     A. 顶部大盘说明 (Minimalist Dashboard Header)
+     ========================================== -->
+  <div class="catalog-header">
+    <h1>FuckEnglish · 极简黑白灰 + 瑞士橘视觉交互稿</h1>
+    <p>
+      在极简黑白灰（Swiss Style）的高对比度底色中，精准滴入<strong>瑞士亮橘（Vibrant Orange）</strong>。
+      对照翻译框重构为极具工艺感的<strong>行号工作台（Workbench Style）</strong>，增加微型十字定位等细节，提升纯平面下的微观精致度。
+    </p>
+  </div>
+
+  <!-- ==========================================
+     B. 状态多窗展示 (Windows Grid)
+     ========================================== -->
+  <div class="windows-grid">
+
+    <!-- ----------------------------------------
+         状态一：首次安装/空配置 (First-Run)
+         ---------------------------------------- -->
+    <div class="mock-window-wrapper">
+      <div class="outer-window-shell">
+        <div class="window-card">
+          
+          <!-- 顶栏 (硬朗、无动效) -->
+          <div class="window-header">
+            <div class="brand-area">
+              <div class="brand-dot"></div>
+              <span class="brand-title">FuckEnglish</span>
+              <span class="brand-subtitle">· 设置</span>
+            </div>
+            <div class="header-actions">
+              <button class="close-btn" title="关闭">✕</button>
+            </div>
+          </div>
+
+          <!-- 主体视窗 -->
+          <div class="window-body">
+            
+            <!-- 极简无彩色 欢迎提示 -->
+            <div class="status-banner banner-welcome">
+              <div class="welcome-text">
+                欢迎使用 <strong>FuckEnglish</strong>。在下方填入你的 API 配置即可开始。推荐使用 <strong>DeepSeek</strong> (中国大陆访问快、成本低)。
+              </div>
+            </div>
+
+            <!-- 表单区 -->
+            <div class="settings-section">
+              <div class="section-title">翻译 API 配置</div>
+
+              <!-- 字段 1 -->
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">接口地址</label>
+                  <span class="form-helper">OpenAI 兼容服务的根 URL</span>
+                </div>
+                <div class="input-container">
+                  <input type="text" class="form-input" placeholder="https://api.deepseek.com" />
+                </div>
+                <div class="chips-group">
+                  <span class="chip">DeepSeek</span>
+                  <span class="chip">OpenAI</span>
+                  <span class="chip">SiliconFlow</span>
+                  <span class="chip">Moonshot</span>
+                </div>
+              </div>
+
+              <!-- 字段 2 -->
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">API Key</label>
+                  <span class="form-helper">仅加密保存在本机</span>
+                </div>
+                <div class="input-container">
+                  <input type="password" class="form-input input-password" placeholder="sk-..." />
+                  <button class="password-toggle-btn" title="显示密码">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 字段 3 -->
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">模型 (Model)</label>
+                  <span class="form-helper">使用的模型 ID</span>
+                </div>
+                <div class="input-container">
+                  <input type="text" class="form-input" placeholder="deepseek-chat" />
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 底部控制 -->
+          <div class="window-footer">
+            <a href="#" class="btn-link">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+              打开配置文件夹
+            </a>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary">测试连接</button>
+              <button class="btn btn-primary">保存配置</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ----------------------------------------
+         状态二：测试连接成功 (Success)
+         ---------------------------------------- -->
+    <div class="mock-window-wrapper">
+      <div class="outer-window-shell">
+        <div class="window-card">
+          
+          <div class="window-header">
+            <div class="brand-area">
+              <div class="brand-dot"></div>
+              <span class="brand-title">FuckEnglish</span>
+              <span class="brand-subtitle">· 设置</span>
+            </div>
+            <div class="header-actions">
+              <button class="close-btn" title="关闭">✕</button>
+            </div>
+          </div>
+
+          <div class="window-body">
+            
+            <!-- 连接成功 Banner -->
+            <div class="status-banner banner-success">
+              <div class="status-text">
+                ✓ 连接成功, 响应耗时 <strong>245ms</strong>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <div class="section-title">翻译 API 配置</div>
+
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">接口地址</label>
+                  <span class="form-helper">OpenAI 兼容服务的根 URL</span>
+                </div>
+                <div class="input-container">
+                  <input type="text" class="form-input" value="https://api.deepseek.com/v1" />
+                </div>
+                <div class="chips-group">
+                  <span class="chip chip-selected">DeepSeek</span>
+                  <span class="chip">OpenAI</span>
+                  <span class="chip">SiliconFlow</span>
+                  <span class="chip">Moonshot</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">API Key</label>
+                  <span class="form-helper">仅加密保存在本机</span>
+                </div>
+                <div class="input-container">
+                  <input type="password" class="form-input input-password" value="sk-deeepseekkeypreview" />
+                  <button class="password-toggle-btn">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">模型 (Model)</label>
+                  <span class="form-helper">使用的模型 ID</span>
+                </div>
+                <div class="input-container">
+                  <input type="text" class="form-input" value="deepseek-chat" />
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="window-footer">
+            <a href="#" class="btn-link">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+              打开配置文件夹
+            </a>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary">重新测试</button>
+              <button class="btn btn-primary">保存并关闭</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ----------------------------------------
+         状态三：测试连接失败 (Failed)
+         ---------------------------------------- -->
+    <div class="mock-window-wrapper">
+      <div class="outer-window-shell">
+        <div class="window-card">
+          
+          <div class="window-header">
+            <div class="brand-area">
+              <div class="brand-dot"></div>
+              <span class="brand-title">FuckEnglish</span>
+              <span class="brand-subtitle">· 设置</span>
+            </div>
+            <div class="header-actions">
+              <button class="close-btn" title="关闭">✕</button>
+            </div>
+          </div>
+
+          <div class="window-body">
+            
+            <!-- 连接失败 Banner -->
+            <div class="status-banner banner-error">
+              <div class="status-text">
+                ✗ <strong>401 Unauthorized</strong> — 请检查你的 API Key 是否有效。
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <div class="section-title">翻译 API 配置</div>
+
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">接口地址</label>
+                  <span class="form-helper">OpenAI 兼容服务的根 URL</span>
+                </div>
+                <div class="input-container">
+                  <input type="text" class="form-input" value="https://api.openai.com/v1" />
+                </div>
+                <div class="chips-group">
+                  <span class="chip">DeepSeek</span>
+                  <span class="chip chip-selected">OpenAI</span>
+                  <span class="chip">SiliconFlow</span>
+                  <span class="chip">Moonshot</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">API Key</label>
+                  <span class="form-helper" style="color: var(--color-error);">API 验证未通过</span>
+                </div>
+                <div class="input-container">
+                  <input type="password" class="form-input input-password input-error" value="sk-invalidkey" />
+                  <button class="password-toggle-btn">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="label-row">
+                  <label class="form-label">模型 (Model)</label>
+                  <span class="form-helper">使用的模型 ID</span>
+                </div>
+                <div class="input-container">
+                  <input type="text" class="form-input" value="gpt-4o-mini" />
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="window-footer">
+            <a href="#" class="btn-link">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+              打开配置文件夹
+            </a>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-secondary pulse-loading-dot" disabled>
+                <span></span><span></span><span></span> 正在测试
+              </button>
+              <button class="btn btn-primary" style="opacity: 0.4; cursor: not-allowed;" disabled>保存并关闭</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ----------------------------------------
+         状态四：极致精细中英翻译对照框 (Refined Workbench Panel)
+         ---------------------------------------- -->
+    <div class="mock-window-wrapper">
+      <div class="outer-window-shell">
+        <div class="window-card">
+          
+          <!-- 极度瘦身顶栏 (无多余高度、极简控件) -->
+          <div class="window-header" style="height: 32px; min-height: 32px; background: var(--color-bg-window);">
+            <div class="brand-area">
+              <div class="brand-dot"></div>
+              <span class="brand-title" style="font-size: 11px;">FuckEnglish</span>
+              <span class="brand-subtitle" style="font-size: 10px;">· 译文</span>
+            </div>
+            
+            <!-- 精密、带工业边框的按钮群 -->
+            <div class="header-actions">
+              <button class="compact-action-btn btn-orange-text">Copy</button>
+              <button class="compact-action-btn">Esc</button>
+            </div>
+          </div>
+
+          <!-- 双栏轻量化技术型文本区 -->
+          <div class="translation-container" style="flex: 1; display: flex; flex-direction: column;">
+            
+            <div class="translation-pane">
+              <!-- 左侧：OCR 纯净排版原文 -->
+              <div class="translation-column column-left">
+                <!-- 毫米级精密十字定位标 -->
+                <div class="crosshair-corner crosshair-lt">+</div>
+                <div class="crosshair-corner crosshair-rb">+</div>
+
+                <div class="column-header">
+                  <div class="column-header-tag">Original</div>
+                  <span class="line-number">P.01</span>
+                </div>
+                <div class="text-content-original">The quick brown fox jumps over the lazy dog. A highly efficient and <span class="highlight-word">low-latency</span> translation window style is expected here.</div>
+              </div>
+
+              <!-- 右侧：LLM 清爽中文译文 -->
+              <div class="translation-column column-right">
+                <div class="crosshair-corner crosshair-lt">+</div>
+                <div class="crosshair-corner crosshair-rb">+</div>
+
+                <div class="column-header">
+                  <div class="column-header-tag" style="color: var(--color-text-main);">Translation</div>
+                  <span class="line-number" style="color: var(--color-accent); font-weight: 700;">ZH</span>
+                </div>
+                <div class="text-content-translated">那只敏捷的棕色狐狸跳过了那只懒狗。在此处我们期望呈现一种极其高效且<span class="highlight-word">低延迟</span>的译文窗口风格。</div>
+              </div>
+            </div>
+
+            <!-- 最底部极窄状态信息栏 (无任何多余边框与纯色填充) -->
+            <div style="height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-size: 10px; color: var(--color-text-weak); font-family: var(--font-mono); background: var(--color-bg-window);">
+              <span>DEEPSEEK-CHAT</span>
+              <span style="display: flex; gap: 8px;">
+                <span style="color: var(--color-success); font-weight: 700;">CONNECTED</span>
+                <span>245ms</span>
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

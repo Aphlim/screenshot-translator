@@ -2,6 +2,7 @@
 // process bundle is CommonJS. `import type` is a TS construct that emits no
 // runtime code; the actual module is loaded via dynamic `import()` below.
 import type OcrLib from '@gutenye/ocr-node';
+import { stripIconNoise, isLikelyNoise } from './cleanup';
 
 type OcrInstance = Awaited<ReturnType<typeof OcrLib.create>>;
 
@@ -113,7 +114,16 @@ function postprocess(lines: Line[]): string {
     }
   }
 
-  return groups.map((g) => g.map((l) => l.text.trim()).join(' ')).join('\n');
+  // Assemble each line, then apply token-level cleanup and a line-level
+  // noise heuristic. PaddleOCR's text-detection network filters most icons,
+  // but icon shapes that look enough like glyphs (chat bubble → "O)", lightning
+  // → "4", briefcase → "6") still survive — these cleanups catch them.
+  const assembledLines = groups
+    .map((g) => g.map((l) => l.text.trim()).join(' '))
+    .map((line) => stripIconNoise(line))
+    .filter((line) => line.length > 0 && !isLikelyNoise(line));
+
+  return assembledLines.join('\n');
 }
 
 export async function disposeOcr(): Promise<void> {

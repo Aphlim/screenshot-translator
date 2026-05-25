@@ -5,6 +5,7 @@ import { openPopupWindow, type PopupSession } from './windows/popup';
 import { recognizeImage } from './ocr';
 import { loadConfig, getConfigPath } from './config/store';
 import { buildProvider } from './translate';
+import { PROMPT_PRESETS, DEFAULT_PROMPT_PRESET_ID } from '@shared/channels';
 
 let inFlight = false;
 let activePopup: PopupSession | null = null;
@@ -50,31 +51,44 @@ export async function runCapturePipeline(): Promise<void> {
       return;
     }
 
-    popup.update({ status: 'translating', original });
-
     const config = await loadConfig();
     if (!config.translate?.apiKey || !config.translate?.baseURL || !config.translate?.model) {
       popup.update({
         status: 'error',
         original,
         message:
-          `未配置翻译 API。\n请在此文件填写配置:\n${getConfigPath()}\n\n` +
-          `(阶段 6 会做成图形化的设置窗,目前先手动改)`,
+          `未配置翻译 API。\n请打开 "设置..."(托盘右键)填入配置。\n或手动编辑:\n${getConfigPath()}`,
       });
       return;
     }
 
-    const provider = buildProvider(config.translate);
+    popup.update({ status: 'translating', original, model: config.translate.model });
+
+    const presetId = config.promptPresetId ?? DEFAULT_PROMPT_PRESET_ID;
+    const preset = PROMPT_PRESETS.find((p) => p.id === presetId) ?? PROMPT_PRESETS[0];
+    const provider = buildProvider(config.translate, preset.systemPrompt);
     const trStart = Date.now();
     try {
       const translated = await provider.translate(original);
-      console.log(`[orchestrator] translate ${Date.now() - trStart}ms — ${translated.length} chars`);
-      popup.update({ status: 'done', original, translated });
+      const translateMs = Date.now() - trStart;
+      console.log(`[orchestrator] translate ${translateMs}ms — ${translated.length} chars`);
+      popup.update({
+        status: 'done',
+        original,
+        translated,
+        model: config.translate.model,
+        translateMs,
+      });
     } catch (err) {
       const e = err as Error & { status?: number };
       const msg = `${e.message ?? String(e)}` + (e.status ? ` (HTTP ${e.status})` : '');
       console.error('[orchestrator] translate error', err);
-      popup.update({ status: 'error', original, message: msg });
+      popup.update({
+        status: 'error',
+        original,
+        message: msg,
+        model: config.translate.model,
+      });
     }
   } catch (err) {
     console.error('[orchestrator] pipeline error', err);

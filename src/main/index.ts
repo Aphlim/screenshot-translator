@@ -5,6 +5,8 @@ import { createTray, destroyTray } from './tray';
 import { registerHotkey, unregisterAllHotkeys } from './hotkey';
 import { runCapturePipeline } from './orchestrator';
 import { disposeOcr } from './ocr';
+import { openSettingsWindow } from './windows/settings';
+import { loadConfig } from './config/store';
 
 // Prevent two instances of the tray app from running at once. The second
 // launch silently exits; the first instance can react via 'second-instance'.
@@ -25,6 +27,15 @@ app.whenReady().then(() => {
 
   createTray({
     onTriggerCapture: handleHotkey,
+    onOpenSettings: () => openSettingsWindow(),
+  });
+
+  // First-launch UX: if there's no API key configured, pop the settings window
+  // immediately so the user knows what to do.
+  void loadConfig().then((cfg) => {
+    if (!cfg.translate?.apiKey) {
+      openSettingsWindow();
+    }
   });
 
   const ok = registerHotkey(DEFAULT_HOTKEY, handleHotkey);

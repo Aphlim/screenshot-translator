@@ -8,13 +8,6 @@ declare global {
   }
 }
 
-const STATUS_LABEL: Record<PopupState['status'], string> = {
-  recognizing: '识别中',
-  translating: '翻译中',
-  done: '完成',
-  error: '错误',
-};
-
 export default function PopupApp() {
   const [state, setState] = useState<PopupState>({ status: 'recognizing' });
   const [copied, setCopied] = useState(false);
@@ -41,75 +34,127 @@ export default function PopupApp() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
     } catch {
-      // clipboard write may fail in restricted contexts; ignore.
+      // ignore
     }
   };
 
-  const isRecognizingOnly = state.status === 'recognizing';
+  const isRecognizing = state.status === 'recognizing';
+  const isTranslating = state.status === 'translating';
+  const isDone = state.status === 'done';
   const isError = state.status === 'error';
-  const hasTranslation = state.status === 'done' && Boolean(state.translated);
 
   return (
     <div className="shell">
       <div className="header">
         <div className="brand">
           <span className="brand-dot" />
-          <span>FuckEnglish</span>
-          <span className="status">· {STATUS_LABEL[state.status]}</span>
+          <span className="brand-title">FuckEnglish</span>
+          <span className="brand-subtitle">· 译文</span>
         </div>
-        <div className="actions">
-          {hasTranslation && (
-            <button className={`btn primary ${copied ? 'toast-copied' : ''}`} onClick={onCopy}>
-              {copied ? '已复制' : '复制译文'}
+        <div className="header-actions">
+          {isDone && (
+            <button
+              className={`action-btn btn-orange ${copied ? 'copied' : ''}`}
+              onClick={onCopy}
+              type="button"
+            >
+              {copied ? 'Copied' : 'Copy'}
             </button>
           )}
-          <button className="btn" onClick={() => window.popupApi.close()}>关闭</button>
+          <button
+            className="action-btn"
+            onClick={() => window.popupApi.close()}
+            type="button"
+          >
+            Esc
+          </button>
         </div>
       </div>
 
-      {isRecognizingOnly ? (
-        <div className="full-state">
-          <div className="loading">
-            <span className="dot" /><span className="dot" /><span className="dot" />
-            <span>正在识别图中文本…</span>
+      <div className="translation-container">
+        {isRecognizing ? (
+          <div className="full-state">
+            <span className="loading-row">
+              <span className="pulse-loading-dot"><span /><span /><span /></span>
+              正在识别图中文本…
+            </span>
           </div>
-        </div>
-      ) : isError && !state.original ? (
-        <div className="full-state">
-          <span className="text error">{state.message ?? '未知错误'}</span>
-        </div>
-      ) : (
-        <div className="body">
-          <section className="column">
-            <div className="column-head">
-              <span>Original</span>
-            </div>
-            <div className="column-body">
-              <p className="text original">{state.original ?? ''}</p>
-            </div>
-          </section>
+        ) : isError && !state.original ? (
+          <div className="full-state">
+            <span className="text error">{state.message ?? '未知错误'}</span>
+          </div>
+        ) : (
+          <div className="translation-pane">
+            {/* Left column: original (OCR output) */}
+            <section className="column left">
+              <span className="crosshair lt">+</span>
+              <span className="crosshair rb">+</span>
+              <div className="column-header">
+                <span className="column-tag">Original</span>
+                <span className="column-indicator">EN</span>
+              </div>
+              <div className="column-body">
+                <p className="text original">{state.original ?? ''}</p>
+              </div>
+            </section>
 
-          <section className="column">
-            <div className="column-head">
-              <span>中文译文</span>
-            </div>
-            <div className="column-body">
-              {state.status === 'translating' && (
-                <div className="loading">
-                  <span className="dot" /><span className="dot" /><span className="dot" />
-                  <span>翻译中…</span>
-                </div>
-              )}
-              {state.status === 'done' && (
-                <p className="text translated">{state.translated ?? ''}</p>
-              )}
-              {state.status === 'error' && (
-                <p className="text error">{state.message ?? '未知错误'}</p>
-              )}
-            </div>
-          </section>
-        </div>
-      )}
+            {/* Right column: translation */}
+            <section className="column right">
+              <span className="crosshair lt">+</span>
+              <span className="crosshair rb">+</span>
+              <div className="column-header">
+                <span className="column-tag">Translation</span>
+                <span className="column-indicator accent">ZH</span>
+              </div>
+              <div className="column-body">
+                {isTranslating && (
+                  <div className="loading-row">
+                    <span className="pulse-loading-dot"><span /><span /><span /></span>
+                    翻译中…
+                  </div>
+                )}
+                {isDone && <p className="text translated">{state.translated ?? ''}</p>}
+                {isError && <p className="text error">{state.message ?? '未知错误'}</p>}
+              </div>
+            </section>
+          </div>
+        )}
+
+        <StatusBar state={state} />
+      </div>
+    </div>
+  );
+}
+
+/** Bottom mono-font status strip — shows model name + current pipeline state. */
+function StatusBar({ state }: { state: PopupState }) {
+  const modelLabel = (state.model ?? '').toUpperCase() || '—';
+
+  let statusNode: React.ReactNode;
+  switch (state.status) {
+    case 'recognizing':
+      statusNode = <span className="status-running">OCR…</span>;
+      break;
+    case 'translating':
+      statusNode = <span className="status-running">TRANSLATING…</span>;
+      break;
+    case 'done':
+      statusNode = (
+        <>
+          <span className="status-ok">DONE</span>
+          {state.translateMs != null && <span>{state.translateMs}ms</span>}
+        </>
+      );
+      break;
+    case 'error':
+      statusNode = <span className="status-fail">FAILED</span>;
+      break;
+  }
+
+  return (
+    <div className="status-bar">
+      <span>{modelLabel}</span>
+      <span className="meta">{statusNode}</span>
     </div>
   );
 }
