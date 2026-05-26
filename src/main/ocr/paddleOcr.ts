@@ -2,18 +2,45 @@
 // process bundle is CommonJS. `import type` is a TS construct that emits no
 // runtime code; the actual module is loaded via dynamic `import()` below.
 import type OcrLib from '@gutenye/ocr-node';
+import path from 'node:path';
+import { app } from 'electron';
 import { stripIconNoise, isLikelyNoise } from './cleanup';
 
 type OcrInstance = Awaited<ReturnType<typeof OcrLib.create>>;
 
 let ocrPromise: Promise<OcrInstance> | null = null;
 
+/**
+ * Locate the @gutenye/ocr-models assets directory. The library's default
+ * resolver uses `import.meta.url` of its own JS file, which inside a packaged
+ * Electron build points at `app.asar/...`. But onnxruntime-node is a native
+ * module and can't read files from inside an asar archive, so we list the
+ * models under electron-builder's `asarUnpack`, which mirrors them to
+ * `app.asar.unpacked/`. Rewrite the path accordingly.
+ *
+ * In dev mode `app.getAppPath()` returns the project root with no `.asar`
+ * suffix, so the suffix branch is skipped and the original path works.
+ */
+function resolveModelsDir(): string {
+  const appPath = app.getAppPath();
+  const base = appPath.endsWith('app.asar') ? `${appPath}.unpacked` : appPath;
+  return path.join(base, 'node_modules', '@gutenye', 'ocr-models', 'assets');
+}
+
 async function getOcr(): Promise<OcrInstance> {
   if (!ocrPromise) {
     const mod = await import('@gutenye/ocr-node');
-    // First create() loads the ONNX text-detection + recognition models
-    // bundled in @gutenye/ocr-models. No CDN download at runtime.
-    ocrPromise = mod.default.create();
+    const modelsDir = resolveModelsDir();
+    // Pass explicit paths so the library doesn't fall back to its
+    // import.meta.url-based resolver (which yields an app.asar/ path that
+    // native modules can't open).
+    ocrPromise = mod.default.create({
+      models: {
+        detectionPath: path.join(modelsDir, 'ch_PP-OCRv4_det_infer.onnx'),
+        recognitionPath: path.join(modelsDir, 'ch_PP-OCRv4_rec_infer.onnx'),
+        dictionaryPath: path.join(modelsDir, 'ppocr_keys_v1.txt'),
+      },
+    });
   }
   return ocrPromise;
 }
