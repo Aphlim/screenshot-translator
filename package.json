@@ -1,18 +1,31 @@
 {
-  "name": "fuck-english",
-  "version": "0.0.1",
-  "description": "Hotkey-triggered screenshot translation desktop app",
+  "name": "kuangyi",
+  "version": "0.1.0",
+  "description": "框译 · 屏幕截图英文一键翻译 — 按 Ctrl+J 框选即译 (OCR 本地跑,翻译走 OpenAI 兼容 API)",
   "main": "./out/main/index.js",
-  "author": "wangyazhuo",
+  "author": {
+    "name": "Aphlim",
+    "email": "1294653875@qq.com"
+  },
   "license": "MIT",
   "private": true,
+  "homepage": "https://github.com/Aphlim/screenshot-translator",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aphlim/screenshot-translator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Aphlim/screenshot-translator/issues"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "npm run typecheck:node && npm run typecheck:web"
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "dist:win": "electron-vite build && electron-builder --win --publish=never",
+    "dist:win:publish": "electron-vite build && electron-builder --win --publish=always"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -30,10 +43,71 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "electron": "^31.2.1",
+    "electron-builder": "^26.8.1",
     "electron-vite": "^2.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "^5.5.3",
     "vite": "^5.3.4"
+  },
+  "build": {
+    "appId": "com.aphlim.kuangyi",
+    "productName": "框译",
+    "copyright": "Copyright © 2026 Aphlim",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "!**/*.{md,svg,ts,map}",
+      "!**/{tsconfig*.json,electron.vite.config.*}",
+      "!docs/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/",
+        "to": ".",
+        "filter": [
+          "icon-*.png",
+          "icon.png"
+        ]
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/@gutenye/ocr-models/**/*",
+      "node_modules/@gutenye/ocr-common/**/*",
+      "node_modules/@gutenye/ocr-node/**/*",
+      "node_modules/onnxruntime-node/**/*",
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "Kuangyi-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "shortcutName": "框译",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Aphlim",
+      "repo": "screenshot-translator",
+      "releaseType": "release"
+    }
   }
 }

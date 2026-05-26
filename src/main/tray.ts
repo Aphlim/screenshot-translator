@@ -32,7 +32,7 @@ function buildMenu(callbacks: TrayCallbacks): Menu {
     },
     { type: 'separator' },
     {
-      label: '退出 FuckEnglish',
+      label: '退出框译',
       role: 'quit',
     },
   ]);
@@ -73,7 +73,7 @@ function refreshTooltip(): void {
   if (!tray) return;
   const hotkeyLabel = acceleratorToHumanLabel(getCurrentHotkey() ?? '');
   tray.setToolTip(
-    hotkeyLabel ? `FuckEnglish — 截图翻译 (${hotkeyLabel})` : 'FuckEnglish — 截图翻译',
+    hotkeyLabel ? `框译 — 截图英文一键翻译 (${hotkeyLabel})` : '框译 — 截图英文一键翻译',
   );
 }
 

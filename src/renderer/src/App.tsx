@@ -12,7 +12,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <h1>FuckEnglish</h1>
+      <h1>框译</h1>
       <p>
         Phase 0 scaffold is alive. IPC ping → <strong>{pong}</strong>
       </p>

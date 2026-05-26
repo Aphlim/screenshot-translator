@@ -21,7 +21,7 @@ function handleHotkey(): void {
 }
 
 app.whenReady().then(async () => {
-  electronApp.setAppUserModelId('com.wangyazhuo.fuckenglish');
+  electronApp.setAppUserModelId('com.aphlim.kuangyi');
 
   ipcMain.handle(IpcChannel.Ping, () => 'pong');
 

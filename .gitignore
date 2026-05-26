@@ -3,6 +3,7 @@ out/
 dist/
 .vite/
 *.log
+.build-log.txt
 .DS_Store
 
 # Electron build artifacts

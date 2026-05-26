@@ -74,7 +74,7 @@ export default function SettingsApp() {
           kind: 'welcome',
           text: (
             <span>
-              欢迎使用 <strong>FuckEnglish</strong>。在下方填入你的 API 配置即可开始。
+              欢迎使用 <strong>框译</strong>。在下方填入你的 API 配置即可开始。
               推荐使用 <strong>DeepSeek</strong>(中国大陆访问快、成本低)。
             </span>
           ),
@@ -188,7 +188,7 @@ export default function SettingsApp() {
       <div className="header">
         <div className="brand">
           <span className="brand-dot" />
-          <span className="brand-title">FuckEnglish</span>
+          <span className="brand-title">框译</span>
           <span className="brand-subtitle">· 设置</span>
         </div>
         <div className="header-actions">
@@ -419,7 +419,7 @@ export default function SettingsApp() {
           className="btn-link"
           onClick={() => window.settingsApi.openConfigFolder()}
           type="button"
-          title="在资源管理器中打开 %APPDATA%\fuck-english"
+          title="在资源管理器中打开 %APPDATA%\kuangyi"
         >
           <FolderIcon />
           打开配置文件夹

@@ -1,4 +1,4 @@
-# FuckEnglish · 设置页 UI 设计简报(给 Gemini)
+# 框译 · 设置页 UI 设计简报(给 Gemini)
 
 > 复制本文整段给 Gemini,让它产出一个**静态 HTML + CSS 的可视化稿**(不需要写 React / 不需要交互逻辑)。我会负责把它转成实际的 React + TypeScript 组件,只参考你给我的视觉设计、布局、配色、间距、字体层级、状态样式即可。
 
@@ -6,7 +6,7 @@
 
 ## 1. 项目背景(一句话)
 
-FuckEnglish 是一个 Windows 桌面工具:用户按 `Ctrl+Alt+T` → 框选屏幕上的英文 → 应用通过 PaddleOCR 识别 + LLM 翻译 → 在框选位置旁边弹出译文窗口。基于 Electron + TypeScript + React,常驻系统托盘运行。
+框译 是一个 Windows 桌面工具:用户按 `Ctrl+Alt+T` → 框选屏幕上的英文 → 应用通过 PaddleOCR 识别 + LLM 翻译 → 在框选位置旁边弹出译文窗口。基于 Electron + TypeScript + React,常驻系统托盘运行。
 
 当前要做的是**设置页**:用户在这里配置 LLM API 信息(`baseURL` / `apiKey` / `model`),不再用文本编辑器手改 JSON。
 
@@ -63,7 +63,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 - 区段之间:`24px` + 一条 `1px solid #ececef` 分割线
 
 ### 已有组件参考(译文弹窗)
-- **顶栏**:38px 高,左侧"品牌点(8px 紫蓝渐变圆) + 'FuckEnglish' + 状态说明",右侧操作按钮组。整个顶栏是可拖动区域(`-webkit-app-region: drag`),按钮区是 no-drag。
+- **顶栏**:38px 高,左侧"品牌点(8px 紫蓝渐变圆) + '框译' + 状态说明",右侧操作按钮组。整个顶栏是可拖动区域(`-webkit-app-region: drag`),按钮区是 no-drag。
 - **按钮**:透明背景 + 灰边 / hover 时浅灰填充 / 浅描边,字号 11.5px,padding 4px×10px。
 
 ---
@@ -73,7 +73,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 整个页面只有**一个"翻译 API"卡片**(MVP 阶段),包含以下结构:
 
 ### 3.1 顶栏(同译文弹窗风格)
-- 左:`●` 品牌渐变点 + `FuckEnglish` + `· 设置`
+- 左:`●` 品牌渐变点 + `框译` + `· 设置`
 - 右:`关闭` 按钮(点击关闭窗口)
 
 ### 3.2 区段:翻译 API 配置
@@ -119,7 +119,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 ### 3.5 首次启动引导(可选,如果有余力)
 
 如果是用户首次打开应用、还没有保存任何 API key,设置页打开时顶部多一行欢迎提示:
-> 欢迎使用 FuckEnglish 👋 在下方填入你的 API 配置即可开始。推荐用 DeepSeek(便宜,中国大陆访问快)。
+> 欢迎使用 框译 👋 在下方填入你的 API 配置即可开始。推荐用 DeepSeek(便宜,中国大陆访问快)。
 
 样式比常规 banner 更柔和(浅紫底,带渐变,圆角 8px)。
 
@@ -142,7 +142,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 ```
 ┌─ 透明 14px 边距 ─────────────────────────────────────┐
 │  ┌─────────────────────────────────────────────────┐│
-│  │ ● FuckEnglish · 完成        [复制译文] [关闭]   ││ ← 顶栏(#fafafa,38px 高)
+│  │ ● 框译 · 完成        [复制译文] [关闭]   ││ ← 顶栏(#fafafa,38px 高)
 │  ├──────────────────┬──────────────────────────────┤│
 │  │ ORIGINAL         │ 中文译文                      ││ ← 区段标签(uppercase)
 │  │                  │                              ││

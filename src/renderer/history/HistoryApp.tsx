@@ -86,7 +86,7 @@ export default function HistoryApp() {
       <div className="header">
         <div className="brand">
           <span className="brand-dot" />
-          <span className="brand-title">FuckEnglish</span>
+          <span className="brand-title">框译</span>
           <span className="brand-subtitle">· 翻译历史</span>
         </div>
         <div className="header-actions">
