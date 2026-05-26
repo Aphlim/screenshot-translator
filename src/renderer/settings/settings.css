@@ -180,10 +180,28 @@ html, body, #root {
 
 .banner.fade-out { opacity: 0; }
 
-/* When pinned to the bottom of the body, push to the bottom of the available
-   space so the banner hugs the footer regardless of how tall content is. */
-.banner.banner-bottom {
-  margin-top: auto;
+/* Floating overlay variant — used for transient feedback (success/error/info
+   from "test connection" or "save"). Sits over the top of the body without
+   disturbing its layout. The Brutalist offset shadow gives it elevation. */
+.banner.banner-floating {
+  position: absolute;
+  top: 46px;       /* 38px header height + 8px gap */
+  left: 14px;
+  right: 14px;
+  z-index: 20;
+  box-shadow: 3px 3px 0 rgba(28, 25, 23, 0.45);
+  animation: banner-slide-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes banner-slide-in {
+  from { transform: translateY(-6px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Inline-at-top variant — used for the persistent welcome banner only.
+   Sits at the top of the body in normal flow. */
+.banner.banner-inline-top {
+  margin-bottom: 4px;
 }
 
 /* ---- Section ---- */
@@ -322,6 +340,126 @@ html, body, #root {
   line-height: 1.5;
   font-style: italic;
 }
+
+/* Custom prompt textarea (shown when "自定义" chip is selected) */
+.prompt-textarea {
+  width: 100%;
+  min-height: 180px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-text-main);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-dark);
+  border-radius: var(--radius-comp);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s ease;
+  -webkit-font-smoothing: antialiased;
+}
+.prompt-textarea::placeholder {
+  color: var(--color-text-placeholder);
+  font-family: var(--font-sans);
+  font-style: italic;
+}
+.prompt-textarea:focus { border-color: var(--color-accent); }
+
+.prompt-hint {
+  font-size: 10.5px;
+  color: var(--color-text-weak);
+  margin-top: 6px;
+  line-height: 1.55;
+}
+.prompt-hint code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border-muted);
+  padding: 1px 4px;
+  border-radius: var(--radius-comp);
+  color: var(--color-accent);
+}
+
+/* Optional size hint inside a language chip (e.g. "Japanese · ~12MB") */
+.chip-hint {
+  opacity: 0.7;
+  font-weight: 500;
+  margin-left: 2px;
+}
+.chip-selected .chip-hint {
+  opacity: 0.85;
+}
+
+/* ---- Hotkey capture component ---- */
+.hotkey-capture {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hotkey-display {
+  flex: 1 1 auto;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-dark);
+  border-radius: var(--radius-comp);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hotkey-display.recording {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  font-style: italic;
+  text-transform: none;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: 0;
+  font-size: 11.5px;
+}
+
+.hotkey-display.invalid {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+.hotkey-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.hotkey-btn {
+  height: 32px;
+  align-self: flex-start;
+  min-width: 70px;
+}
+
+.hotkey-warning {
+  font-size: 11px;
+  color: var(--color-error);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* Place display + button side-by-side */
+.hotkey-capture {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.hotkey-capture .hotkey-display { flex: 1 1 auto; min-width: 0; }
+.hotkey-capture .hotkey-warning { flex-basis: 100%; }
 
 /* ---- Footer ---- */
 .footer {

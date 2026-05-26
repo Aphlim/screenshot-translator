@@ -3,22 +3,29 @@ import { join } from 'node:path';
 // Type-only: electron-store v9+ is ESM. Loaded via dynamic import at runtime
 // because the Electron main process bundle is CommonJS.
 import type Store from 'electron-store';
+import type { HistoryEntry } from '@shared/channels';
+import { HISTORY_MAX } from '@shared/channels';
 
 export interface TranslateConfig {
-  /** e.g. "https://api.deepseek.com" or "https://api.openai.com/v1" */
   baseURL: string;
   apiKey: string;
-  /** e.g. "deepseek-chat", "gpt-4o-mini", "Qwen/Qwen2.5-7B-Instruct" */
   model: string;
 }
 
 export interface AppConfig {
   translate?: TranslateConfig;
-  /** ID of the active prompt preset from PROMPT_PRESETS (default 'general'). */
   promptPresetId?: string;
-  /** Reserved for v2 — currently hardcoded to Ctrl+Alt+T. */
+  /** User-defined system prompt; used when promptPresetId === 'custom'. */
+  customPrompt?: string;
+  /** Electron accelerator (e.g. "CommandOrControl+J"). */
   hotkey?: string;
-  /** Reserved for v2 — currently always 'paddle'. */
+  /** Source language id; drives OCR engine selection. */
+  sourceLanguage?: string;
+  /** Target language id; substituted into the prompt template. */
+  targetLanguage?: string;
+  /** Translation history (FIFO, capped at HISTORY_MAX). */
+  history?: HistoryEntry[];
+  /** Reserved for v2 — currently always 'paddle' (when sourceLanguage routes there). */
   ocrEngine?: 'paddle' | 'tesseract';
 }
 
@@ -30,8 +37,6 @@ async function getStore(): Promise<Store<AppConfig>> {
       const mod = await import('electron-store');
       const StoreCtor = mod.default;
       return new StoreCtor<AppConfig>({
-        // Path resolves to %APPDATA%/fuck-english/config.json on Windows,
-        // matching what users may have created manually before phase 6.
         name: 'config',
         defaults: {},
         clearInvalidConfig: true,
@@ -60,4 +65,30 @@ export async function patchConfig(patch: Partial<AppConfig>): Promise<AppConfig>
 
 export function getConfigPath(): string {
   return join(app.getPath('userData'), 'config.json');
+}
+
+// --- History helpers (separate so the orchestrator doesn't shuffle full configs around) ---
+
+export async function getHistory(): Promise<HistoryEntry[]> {
+  const cfg = await loadConfig();
+  return cfg.history ?? [];
+}
+
+export async function pushHistory(entry: HistoryEntry): Promise<void> {
+  const store = await getStore();
+  const current = store.store.history ?? [];
+  // Newest first, capped at HISTORY_MAX (oldest dropped).
+  const next = [entry, ...current].slice(0, HISTORY_MAX);
+  store.store = { ...store.store, history: next };
+}
+
+export async function deleteHistoryEntry(id: string): Promise<void> {
+  const store = await getStore();
+  const current = store.store.history ?? [];
+  store.store = { ...store.store, history: current.filter((e) => e.id !== id) };
+}
+
+export async function clearHistory(): Promise<void> {
+  const store = await getStore();
+  store.store = { ...store.store, history: [] };
 }

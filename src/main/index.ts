@@ -6,10 +6,10 @@ import { registerHotkey, unregisterAllHotkeys } from './hotkey';
 import { runCapturePipeline } from './orchestrator';
 import { disposeOcr } from './ocr';
 import { openSettingsWindow } from './windows/settings';
+import { openHistoryWindow } from './windows/history';
 import { loadConfig } from './config/store';
 
-// Prevent two instances of the tray app from running at once. The second
-// launch silently exits; the first instance can react via 'second-instance'.
+// Prevent two instances of the tray app from running at once.
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
@@ -20,7 +20,7 @@ function handleHotkey(): void {
   void runCapturePipeline();
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.wangyazhuo.fuckenglish');
 
   ipcMain.handle(IpcChannel.Ping, () => 'pong');
@@ -28,21 +28,27 @@ app.whenReady().then(() => {
   createTray({
     onTriggerCapture: handleHotkey,
     onOpenSettings: () => openSettingsWindow(),
+    onOpenHistory: () => openHistoryWindow(),
   });
 
-  // First-launch UX: if there's no API key configured, pop the settings window
-  // immediately so the user knows what to do.
-  void loadConfig().then((cfg) => {
-    if (!cfg.translate?.apiKey) {
-      openSettingsWindow();
-    }
-  });
-
-  const ok = registerHotkey(DEFAULT_HOTKEY, handleHotkey);
+  // Load config to determine which hotkey to register AND whether to auto-open
+  // settings (first-launch). Do this synchronously so the hotkey is bound
+  // before the user has any chance to press it.
+  const cfg = await loadConfig();
+  const accelerator = cfg.hotkey ?? DEFAULT_HOTKEY;
+  const ok = registerHotkey(accelerator, handleHotkey);
   if (!ok) {
-    console.error(`[hotkey] failed to register ${DEFAULT_HOTKEY} (taken by another app?)`);
+    console.error(`[hotkey] failed to register ${accelerator} — falling back to default`);
+    // Try the bundled default as a last resort so the user always has *some* hotkey.
+    if (accelerator !== DEFAULT_HOTKEY) {
+      registerHotkey(DEFAULT_HOTKEY, handleHotkey);
+    }
   } else {
-    console.log(`[hotkey] registered ${DEFAULT_HOTKEY}`);
+    console.log(`[hotkey] registered ${accelerator}`);
+  }
+
+  if (!cfg.translate?.apiKey) {
+    openSettingsWindow();
   }
 
   // Keep the dock/taskbar clean — we're a background tray app.

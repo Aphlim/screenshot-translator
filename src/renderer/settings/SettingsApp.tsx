@@ -2,10 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import {
   PROMPT_PRESETS,
   DEFAULT_PROMPT_PRESET_ID,
+  CUSTOM_PROMPT_PRESET_ID,
+  SOURCE_LANGUAGES,
+  DEFAULT_SOURCE_LANGUAGE,
+  TARGET_LANGUAGES,
+  DEFAULT_TARGET_LANGUAGE,
+  DEFAULT_HOTKEY,
   type SettingsPayload,
   type SettingsTestResult,
 } from '@shared/channels';
 import type { SettingsApi } from '../../preload/settings';
+import HotkeyCapture from './HotkeyCapture';
 
 declare global {
   interface Window {
@@ -38,6 +45,10 @@ export default function SettingsApp() {
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('');
   const [promptPresetId, setPromptPresetId] = useState<string>(DEFAULT_PROMPT_PRESET_ID);
+  const [customPrompt, setCustomPrompt] = useState<string>('');
+  const [sourceLanguage, setSourceLanguage] = useState<string>(DEFAULT_SOURCE_LANGUAGE);
+  const [targetLanguage, setTargetLanguage] = useState<string>(DEFAULT_TARGET_LANGUAGE);
+  const [hotkey, setHotkey] = useState<string>(DEFAULT_HOTKEY);
   const [showKey, setShowKey] = useState(false);
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -52,6 +63,10 @@ export default function SettingsApp() {
       setApiKey(cfg.translate?.apiKey ?? '');
       setModel(cfg.translate?.model ?? '');
       setPromptPresetId(cfg.promptPresetId ?? DEFAULT_PROMPT_PRESET_ID);
+      setCustomPrompt(cfg.customPrompt ?? '');
+      setSourceLanguage(cfg.sourceLanguage ?? DEFAULT_SOURCE_LANGUAGE);
+      setTargetLanguage(cfg.targetLanguage ?? DEFAULT_TARGET_LANGUAGE);
+      setHotkey(cfg.hotkey ?? DEFAULT_HOTKEY);
       setLoaded(true);
 
       if (!cfg.translate?.apiKey) {
@@ -68,7 +83,6 @@ export default function SettingsApp() {
     });
   }, []);
 
-  // Auto-fade non-welcome banners after 3.5s.
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -142,11 +156,25 @@ export default function SettingsApp() {
     if (!formValid || saving) return;
     setSaving(true);
     try {
-      await window.settingsApi.save({
+      const res = await window.settingsApi.save({
         translate: { baseURL: baseURL.trim(), apiKey: apiKey.trim(), model: model.trim() },
         promptPresetId,
+        customPrompt,
+        sourceLanguage,
+        targetLanguage,
+        hotkey,
       });
-      setBanner({ kind: 'info', text: <span>✓ 已保存,下一次按 Ctrl+Alt+T 即生效</span> });
+
+      // Hotkey-specific feedback overrides the generic save banner.
+      if (res.hotkey && !res.hotkey.ok) {
+        setBanner({
+          kind: 'error',
+          text: <span>✗ {res.hotkey.message ?? '快捷键注册失败'}</span>,
+        });
+        return;
+      }
+
+      setBanner({ kind: 'info', text: <span>✓ 已保存,下一次按快捷键即生效</span> });
       if (closeAfter) {
         setTimeout(() => window.settingsApi.close(), 400);
       }
@@ -170,7 +198,22 @@ export default function SettingsApp() {
         </div>
       </div>
 
+      {/* Floating transient banner — overlays the top of the body, doesn't
+          disturb form layout. Welcome banner stays inline below (it's
+          persistent until the user fills in the API key). */}
+      {banner && banner.kind !== 'welcome' && (
+        <div className={`banner banner-floating ${banner.kind} ${bannerFading ? 'fade-out' : ''}`}>
+          <div>{banner.text}</div>
+        </div>
+      )}
+
       <div className="body">
+        {banner && banner.kind === 'welcome' && (
+          <div className="banner banner-inline-top welcome">
+            <div>{banner.text}</div>
+          </div>
+        )}
+
         <section className="section">
           <h3 className="section-title">翻译 API 配置</h3>
 
@@ -258,6 +301,50 @@ export default function SettingsApp() {
         </section>
 
         <section className="section">
+          <h3 className="section-title">语言</h3>
+
+          <div className="form-group">
+            <div className="label-row">
+              <label className="form-label">源语言(OCR 识别)</label>
+              <span className="form-helper">en/zh 用 PaddleOCR;ja/ko 用 Tesseract</span>
+            </div>
+            <div className="chips-group">
+              {SOURCE_LANGUAGES.map((l) => (
+                <button
+                  key={l.id}
+                  className={`chip ${sourceLanguage === l.id ? 'chip-selected' : ''}`}
+                  onClick={() => setSourceLanguage(l.id)}
+                  type="button"
+                  title={l.sizeHint ? `首次使用会下载 ${l.sizeHint} 语言包` : ''}
+                >
+                  {l.label}
+                  {l.sizeHint && <span className="chip-hint"> · {l.sizeHint}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <div className="label-row">
+              <label className="form-label">目标语言(翻译为)</label>
+              <span className="form-helper">影响 LLM 提示词中的目标语言</span>
+            </div>
+            <div className="chips-group">
+              {TARGET_LANGUAGES.map((l) => (
+                <button
+                  key={l.id}
+                  className={`chip ${targetLanguage === l.id ? 'chip-selected' : ''}`}
+                  onClick={() => setTargetLanguage(l.id)}
+                  type="button"
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
           <h3 className="section-title">翻译风格</h3>
           <div className="form-group">
             <div className="label-row">
@@ -275,20 +362,56 @@ export default function SettingsApp() {
                   {p.label}
                 </button>
               ))}
+              <button
+                className={`chip ${promptPresetId === CUSTOM_PROMPT_PRESET_ID ? 'chip-selected' : ''}`}
+                onClick={() => {
+                  // First time switching to custom: prefill with the currently
+                  // selected preset so the user has a starting point to edit.
+                  if (!customPrompt.trim()) {
+                    const current = PROMPT_PRESETS.find((p) => p.id === promptPresetId);
+                    setCustomPrompt(current?.systemPrompt ?? PROMPT_PRESETS[0].systemPrompt);
+                  }
+                  setPromptPresetId(CUSTOM_PROMPT_PRESET_ID);
+                }}
+                type="button"
+              >
+                自定义
+              </button>
             </div>
-            <div className="preset-description">
-              {PROMPT_PRESETS.find((p) => p.id === promptPresetId)?.description ?? ''}
-            </div>
+            {promptPresetId === CUSTOM_PROMPT_PRESET_ID ? (
+              <>
+                <textarea
+                  className="prompt-textarea"
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="编写你自己的 system prompt。使用 {target} 占位符代表用户选择的目标语言(会自动替换)。"
+                  rows={9}
+                  spellCheck={false}
+                />
+                <div className="prompt-hint">
+                  💡 提示:用 <code>{'{target}'}</code> 代表目标语言(会被替换为如"简体中文"、"English"等);
+                  写明"只输出译文,不要解释"以避免 LLM 加前言;留空会回退到"通用"预设。
+                </div>
+              </>
+            ) : (
+              <div className="preset-description">
+                {PROMPT_PRESETS.find((p) => p.id === promptPresetId)?.description ?? ''}
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Banner pinned to the bottom of the body — sits right above the
-            footer so user's eye lands on it after clicking action buttons. */}
-        {banner && (
-          <div className={`banner banner-bottom ${banner.kind} ${bannerFading ? 'fade-out' : ''}`}>
-            <div>{banner.text}</div>
+        <section className="section">
+          <h3 className="section-title">快捷键</h3>
+          <div className="form-group">
+            <div className="label-row">
+              <label className="form-label">全局快捷键</label>
+              <span className="form-helper">按下"录制"后按一次组合键</span>
+            </div>
+            <HotkeyCapture value={hotkey} onChange={setHotkey} />
           </div>
-        )}
+        </section>
+
       </div>
 
       <div className="footer">
@@ -329,8 +452,6 @@ export default function SettingsApp() {
     </div>
   );
 }
-
-/* --- Inline SVG icons (kept local to avoid a separate icon module) --- */
 
 function EyeIcon() {
   return (

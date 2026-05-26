@@ -77,15 +77,15 @@ export function openPopupWindow(
     width: POPUP_WIDTH,
     height: POPUP_HEIGHT,
     frame: false,
-    transparent: true,           // outer window transparent → inner card shows soft shadow
-    hasShadow: false,            // we draw our own CSS shadow on the card
+    transparent: false,          // shell fills the window — no shadow / no gutter
+    hasShadow: false,
     alwaysOnTop: true,
     skipTaskbar: true,
     resizable: true,
     minimizable: false,
     maximizable: false,
     show: false,
-    backgroundColor: '#00000000',
+    backgroundColor: '#faf9f5',
     webPreferences: {
       preload: join(__dirname, '../preload/popup.js'),
       sandbox: false,
